@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Band Setlist Timer</title>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            background: #0b0c10;
+            color: #fff;
+            font-family: system-ui
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+            text-align: center;
+        }
+
+        .now {
+            font-size: 14vw;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .next {
+            font-size: 8vw;
+            color: #888
+        }
+
+        .shrink {
+            font-size: 9vw !important;
+            opacity: .5
+        }
+
+        .grow {
+            font-size: 12vw !important;
+            color: #4de1a1
+        }
+
+        .timer {
+            font-size: 10vw
+        }
+
+        .barWrap {
+            width: 100%;
+            height: 22px;
+            background: #222;
+            border-radius: 20px;
+            overflow: hidden
+        }
+
+        .bar {
+            height: 100%;
+            width: 0%;
+            background: #4de1a1
+        }
+
+        .startBtn {
+            font-size: 7vw;
+            padding: 18px;
+            border: none;
+            border-radius: 20px;
+            background: #4de1a1
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div>
+            <div id="now" class="now"></div>
+            <div id="next" class="next"></div>
+        </div>
+
+        <div>
+            <div id="timer" class="timer">00:00 / 00:00</div>
+            <div class="barWrap">
+                <div id="bar" class="bar"></div>
+            </div>
+        </div>
+
+        <button id="startBtn" class="startBtn" onclick="start()">START</button>
+    </div>
+
+    <script>
+        const nowEl = document.getElementById("now");
+        const nextEl = document.getElementById("next");
+        const timerEl = document.getElementById("timer");
+        const barEl = document.getElementById("bar");
+        const startBtn = document.getElementById("startBtn");
+
+        const songs = [
+            { name: "A swell in the sun", dur: 23 },
+            { name: "FOREVER", dur: 25 },
+            { name: "Killing Me", dur: 25 },
+            { name: "Drum Performance", dur: 60 },
+            { name: "READY STEADY GO", dur: 229 },
+            { name: "MC", dur: 120 },
+            { name: "Medley – HONEY / Heaven's Drive / Spirit dreams inside / Pieces / Hitomi no Jyuunin", dur: 320 },
+            { name: "STAY AWAY", dur: 256 },
+            { name: "MC", dur: 120 },
+            { name: "Blurry Eyes", dur: 264 },
+            { name: "twinkle twinkle", dur: 250 },
+            { name: "Final Greeting", dur: 120 },
+        ];
+
+        let idx = 0, sec = 0, timerId = null;
+
+        function fmt(s) { return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0") }
+
+        function fitText() {
+            let size = 14;
+            nowEl.style.fontSize = size + "vw";
+            while (nowEl.scrollWidth > nowEl.clientWidth) {
+                size -= 0.5;
+                nowEl.style.fontSize = size + "vw";
+                if (size < 5) break;
+            }
+        }
+
+        function focusEffect(dur) {
+            const remain = dur - sec;
+            if (remain <= 20 && remain > 0) {
+                nowEl.classList.add("shrink");
+                nextEl.classList.add("grow");
+            } else {
+                nowEl.classList.remove("shrink");
+                nextEl.classList.remove("grow");
+            }
+        }
+
+        function draw() {
+            const dur = songs[idx]?.dur || 1;
+            nowEl.innerText = songs[idx]?.name ?? "END";
+            nextEl.innerText = (songs[idx + 1]?.name ?? "-");
+            timerEl.innerText = fmt(sec) + " / " + fmt(dur);
+            barEl.style.width = (sec / dur * 100) + "%";
+            focusEffect(dur);
+            fitText();
+        }
+
+        function tick() {
+            sec++;
+            if (sec >= songs[idx].dur) {
+                idx++; sec = 0;
+                if (idx >= songs.length) clearInterval(timerId);
+            }
+            draw();
+        }
+
+        function start() {
+            if (timerId) return;
+            startBtn.style.display = "none";
+            timerId = setInterval(tick, 1000);
+        }
+
+        draw();
+    </script>
+</body>
+
+</html>
